@@ -70,18 +70,32 @@
                         // Hide loading message once the data is retrieved
                         document.getElementById("loadingMessage").style.display = 'none';
 
-                        // Use the data from Google Apps Script to populate the WhatsApp and Email links
-                        const locationMessage = `Hello, I am sharing my current location. You can view it on Google Maps here: https://www.google.com/maps?q=latitude,longitude`;  // You can update this with actual latitude/longitude
+                        // Use the Geolocation API to get the current location of the scanner
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(function(position) {
+                                const latitude = position.coords.latitude;
+                                const longitude = position.coords.longitude;
 
-                        const whatsappLink = `https://wa.me/${data.phone}?text=${encodeURIComponent(locationMessage)}`;
-                        const emailLink = `mailto:${data.email}?subject=My Location&body=${encodeURIComponent(locationMessage)}`;
+                                // Format the message to include pet name and current location
+                                const locationMessage = `Hello, I am sharing my current location for ${data.petName}. Latitude: ${latitude}, Longitude: ${longitude}. You can view it on Google Maps here: https://www.google.com/maps?q=${latitude},${longitude}`;
 
-                        // Set the href attributes dynamically
-                        document.getElementById("whatsappLink").href = whatsappLink;
-                        document.getElementById("emailLink").href = emailLink;
+                                const whatsappLink = `https://wa.me/${data.phone}?text=${encodeURIComponent(locationMessage)}`;
+                                const emailLink = `mailto:${data.email}?subject=My Location&body=${encodeURIComponent(locationMessage)}`;
 
-                        // Show the sharing options
-                        document.getElementById("locationLink").style.display = 'block';
+                                // Set the href attributes dynamically
+                                document.getElementById("whatsappLink").href = whatsappLink;
+                                document.getElementById("emailLink").href = emailLink;
+
+                                // Show the sharing options
+                                document.getElementById("locationLink").style.display = 'block';
+                            }, function(error) {
+                                alert("Error getting your location. Please try again later.");
+                                document.getElementById("loadingMessage").style.display = 'none';
+                            });
+                        } else {
+                            alert("Geolocation is not supported by this browser.");
+                            document.getElementById("loadingMessage").style.display = 'none';
+                        }
                     })
                     .catch(error => {
                         // Hide loading message and show an error if fetching data fails
