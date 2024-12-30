@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Location</title>
+    <style>
+        #shareLocationButton {
+            padding: 20px 40px;
+            font-size: 24px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%; /* Full-width button */
+            max-width: 400px; /* Optional: to limit the button width */
+            border-radius: 8px; /* Rounded corners */
+            text-align: center;
+        }
+
+        #shareLocationButton:hover {
+            background-color: #0056b3;
+        }
+
+        #locationLink {
+            display: none; /* Initially hide the link */
+            margin-top: 20px;
+        }
+
+        #locationLink a {
+            display: block;
+            margin-top: 10px;
+        }
+
+        #loadingMessage {
+            display: none;
+            font-size: 18px;
+            color: #555;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="shareLocationButton">Share Location</button>
+
+    <!-- Loading message while waiting for location -->
+    <div id="loadingMessage">Please wait... Retrieving your location...</div>
+
+    <div id="locationLink">
+        <p>Click below to share the location:</p>
+        <a id="whatsappLink" href="#" target="_blank">Send via WhatsApp</a>
+        <a id="emailLink" href="#" target="_blank">Send via Email</a>
+    </div>
+
+    <script>
+        document.getElementById("shareLocationButton").addEventListener("click", function() {
+            // Show the loading message while waiting for the location
+            document.getElementById("loadingMessage").style.display = 'block';
+
+            // Get the `code` parameter from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code'); // Get the code from the URL (e.g., 455214988)
+
+            if (code) {
+                // Fetch data from the Google Apps Script Web App with the code
+                fetch(`https://script.googleusercontent.com/macros/echo?user_content_key=FCBitzHfNyOF7mTLx2eM0HB-Y2865-8pcss5MydXZXMMOYJzfPpTx_clJdvgqHYBC_vfDRcVny9bvD9pYFz0edK7QsMMI8-rm5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnHy0oxHJIwd3RpWOqUFmBymDOW7zrliveCm9CVHe_pdyy4aEnpxDENcT9XDljKqkPz73lUPp2LvSm-smzuIa6iqVw25F49O-LQ&lib=MYonhjxJXzwscR8s-llbPu7EEolRq5qLG&code=${code}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loading message once the data is retrieved
+                        document.getElementById("loadingMessage").style.display = 'none';
+
+                        // Use the data from Google Apps Script to populate the WhatsApp and Email links
+                        const locationMessage = `Hello, I am sharing my current location. You can view it on Google Maps here: https://www.google.com/maps?q=latitude,longitude`;  // You can update this with actual latitude/longitude
+
+                        const whatsappLink = `https://wa.me/${data.phone}?text=${encodeURIComponent(locationMessage)}`;
+                        const emailLink = `mailto:${data.email}?subject=My Location&body=${encodeURIComponent(locationMessage)}`;
+
+                        // Set the href attributes dynamically
+                        document.getElementById("whatsappLink").href = whatsappLink;
+                        document.getElementById("emailLink").href = emailLink;
+
+                        // Show the sharing options
+                        document.getElementById("locationLink").style.display = 'block';
+                    })
+                    .catch(error => {
+                        // Hide loading message and show an error if fetching data fails
+                        document.getElementById("loadingMessage").style.display = 'none';
+                        alert("Error fetching data. Please try again later.");
+                    });
+            } else {
+                alert("Invalid or missing code.");
+                document.getElementById("loadingMessage").style.display = 'none';
+            }
+        });
+    </script>
+
+</body>
+</html>
